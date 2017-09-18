@@ -2,15 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	content "github.com/andrewburian/content-type"
+	media "github.com/andrewburian/mediatype"
 	"io"
 	"net/http"
 )
 
-var contentTypeJson *content.ContentType
+var contentTypeJson *media.ContentType
 
 func init() {
-	contentTypeJson, _ = content.ParseSingle("application/json")
+	contentTypeJson, _ = media.ParseSingle("application/json")
 }
 
 // DecodeJSON wraps the creation of a decoder and a quick decode
@@ -28,7 +28,7 @@ func RenderJSON(w http.ResponseWriter, obj interface{}) error {
 // SupportsJSON checks for bi-directional JSON encoding support
 func AcceptsJSON(r *http.Request) bool {
 
-	ct, accepts, err := content.ParseRequest(r)
+	ct, accepts, err := media.ParseRequest(r)
 	if err != nil {
 		return false
 	}
