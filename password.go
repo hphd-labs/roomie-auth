@@ -10,12 +10,18 @@ import (
 // PasswordAuthHandler deals with password based authentication
 // attempts
 type PasswordAuthHandler struct {
-	DB           AuthDatabase
+	DB           *AuthDatabase
 	PasswordCost int
 }
 
 func (h *PasswordAuthHandler) Setup(r *powermux.Route) {
+	// Register routes
 	r.PostFunc(h.Login)
+
+	// Set password hash cost
+	if h.PasswordCost == 0 {
+		h.PasswordCost = bcrypt.DefaultCost
+	}
 }
 
 func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ import (
 
 const (
 	ROUTE_AUTH = "/auth"
+	ROUTE_PASSWORD = "/password"
 )
 
 const (
@@ -16,8 +17,13 @@ const (
 
 func main() {
 
+	// Database connection
+	authDB := &AuthDatabase{}
+
 	// Create the password auth handler
-	passwordHandler := PasswordAuthHandler{}
+	passwordHandler := PasswordAuthHandler{
+		DB: authDB,
+	}
 
 	// Create the router
 	// ALL routes must be unde
@@ -25,7 +31,7 @@ func main() {
 
 	// Register the handlers
 	authRoute := mux.Route(ROUTE_AUTH)
-	passwordHandler.Setup(authRoute.Route("/password"))
+	passwordHandler.Setup(authRoute.Route(ROUTE_PASSWORD))
 
 	// get the port
 	var port string
