@@ -19,8 +19,9 @@ const (
 
 func main() {
 
-	verbose := flag.Bool("verbose", false, "Include verbose debug messages")
+	debug := flag.Bool("debug", false, "Include verbose debug messages")
 	quiet := flag.Bool("quiet", false, "Suppress all but error messages")
+	flag.Parse()
 
 	// Database connection
 	authDB := &AuthDatabase{}
@@ -37,12 +38,12 @@ func main() {
 
 	// Setup middleware
 
-	// verbose supersedes quiet
+	// debug supersedes quiet
 	if *quiet {
-		logrus.StandardLogger().Level = logrus.ErrorLevel
+		logrus.SetLevel(logrus.ErrorLevel)
 	}
-	if *verbose {
-		logrus.StandardLogger().Level = logrus.DebugLevel
+	if *debug {
+		logrus.SetLevel(logrus.DebugLevel)
 		logrus.Debug("Running at DEBUG verbosity")
 	}
 
