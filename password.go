@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/andrewburian/powermux"
+	"github.com/axiomzen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -56,6 +57,7 @@ func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "User not found", http.StatusNotFound)
 		default:
 			http.Error(w, "Database error", http.StatusInternalServerError)
+			GetLog(r).WithField("component", "database").Error(err)
 		}
 		return
 	}
@@ -83,17 +85,26 @@ func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	err = RenderJSON(w, resp)
 	if err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		GetLog(r).Error(err)
 		return
 	}
+
+	GetLog(r).WithField("user", user.ID).Info("Password login success")
 
 }
 
 // UpgradeAuth checks if the password's bcrypt cost is up to current standards, and rehashes it if it's not,
 // overwriting the existing creds with a new higher cost version.
 func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, user *User, password []byte) {
+	log := logrus.NewEntry(logrus.StandardLogger()).WithFields(map[string]interface{}{
+		"component":   "auth_upgrade",
+		"user":        user.ID,
+		"target_cost": h.PasswordCost,
+	})
+
 	cost, err := bcrypt.Cost(user.Credentials)
 	if err != nil {
-		//TODO log this very loudly
+		log.Error(err)
 		return
 	}
 
@@ -104,7 +115,7 @@ func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, user *User, passw
 
 	newCreds, err := bcrypt.GenerateFromPassword(password, cost)
 	if err != nil {
-		//TODO log
+		log.Error(err)
 		return
 	}
 
@@ -117,6 +128,8 @@ func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, user *User, passw
 	// Store new creds
 	err = h.DB.SetUserCredentials(ctx, updatedUser)
 	if err != nil {
-		//TODO log
+		log.WithField("component", "database").Error(err)
 	}
+
+	log.Info("Password hash upgraded")
 }
