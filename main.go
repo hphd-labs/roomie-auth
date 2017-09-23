@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/Sirupsen/logrus"
 	"github.com/andrewburian/powermux"
+	"github.com/go-pg/pg"
 	"net/http"
 	"os"
 )
@@ -24,7 +25,14 @@ func main() {
 	flag.Parse()
 
 	// Database connection
-	authDB := &AuthDatabase{}
+	authDB := &AuthDatabase{
+		Database: pg.Connect(&pg.Options{
+			Addr:     "localhost:5432", //TODO environment variables
+			User:     "postgres",
+			Database: "postgres",
+			Password: "root",
+		}),
+	}
 
 	// Create the password auth handler
 	passwordHandler := PasswordAuthHandler{

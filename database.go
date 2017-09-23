@@ -3,38 +3,37 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/go-pg/pg"
 )
 
 var (
-	errUserNotFound = errors.New("User not found")
+	ErrUserNotFound = errors.New("User not found")
 )
 
-// password is 'password'
-// TODO delete this
-var dummyUser = User{
-	ID:          "1",
-	Username:    "admin",
-	Credentials: []byte("$2a$10$8rCSa.Tk5L9Qyp4aG4dyP.tVkkadD9B1lV5Pe98QSPkz9lFw6paOa"),
-}
-
 type AuthDatabase struct {
+	Database *pg.DB
 }
 
-func (db *AuthDatabase) SetUserCredentials(ctx context.Context, user *User) error {
-	if user.ID != dummyUser.ID {
-		return errUserNotFound
-	}
+func (db *AuthDatabase) SetPassword(ctx context.Context, pass *Password) error {
+	_, err := db.Database.
+		WithContext(ctx).
+		Model(pass).
+		Set("hash = ?hash").
+		Update()
 
-	dummyUser.Credentials = user.Credentials
-	return nil
+	return err
 }
 
 func (db *AuthDatabase) GetUserByName(ctx context.Context, user *User) error {
-	if user.Username != dummyUser.Username {
-		return errUserNotFound
-	}
+	err := db.Database.
+		WithContext(ctx).
+		Model(user).
+		Column("Password").
+		Where("username = ?username").
+		Select()
 
-	user.Credentials = dummyUser.Credentials
-	user.ID = dummyUser.ID
-	return nil
+	if err == pg.ErrNoRows {
+		return ErrUserNotFound
+	}
+	return err
 }

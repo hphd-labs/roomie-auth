@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/Sirupsen/logrus"
 	"github.com/andrewburian/powermux"
-	"github.com/axiomzen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -53,7 +53,7 @@ func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	err := h.DB.GetUserByName(ctx, user)
 	if err != nil {
 		switch err {
-		case errUserNotFound:
+		case ErrUserNotFound:
 			http.Error(w, "User not found", http.StatusNotFound)
 		default:
 			http.Error(w, "Database error", http.StatusInternalServerError)
@@ -62,16 +62,23 @@ func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check the user has password auth enabled
+	if user.Password == nil {
+		http.Error(w, "Password authorization not allowed for this user", http.StatusForbidden)
+		GetLog(r).WithField("user", user.ID).Debug("User attempted password auth when no password was enabled")
+		return
+	}
+
 	// check user credentials
-	err = bcrypt.CompareHashAndPassword(user.Credentials, []byte(authAttempt.Password))
+	err = bcrypt.CompareHashAndPassword(user.Password.Hash, []byte(authAttempt.Password))
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusForbidden)
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
 	// check if the password needs upgraded
 	// this can be done in the background as it doesn't affect this endpoint's return
-	go h.UpgradeAuth(context.Background(), user, []byte(authAttempt.Password))
+	go h.UpgradeAuth(context.Background(), user.Password, []byte(authAttempt.Password))
 
 	// Cut user an auth token
 	//TODO generate token
@@ -95,14 +102,15 @@ func (h *PasswordAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // UpgradeAuth checks if the password's bcrypt cost is up to current standards, and rehashes it if it's not,
 // overwriting the existing creds with a new higher cost version.
-func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, user *User, password []byte) {
+func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, pass *Password, plaintext []byte) {
+	// setup logs
 	log := logrus.NewEntry(logrus.StandardLogger()).WithFields(map[string]interface{}{
 		"component":   "auth_upgrade",
-		"user":        user.ID,
+		"user":        pass.UserID,
 		"target_cost": h.PasswordCost,
 	})
 
-	cost, err := bcrypt.Cost(user.Credentials)
+	cost, err := bcrypt.Cost(pass.Hash)
 	if err != nil {
 		log.Error(err)
 		return
@@ -113,20 +121,20 @@ func (h *PasswordAuthHandler) UpgradeAuth(ctx context.Context, user *User, passw
 		return
 	}
 
-	newCreds, err := bcrypt.GenerateFromPassword(password, cost)
+	newCreds, err := bcrypt.GenerateFromPassword(plaintext, h.PasswordCost)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
 	// new user object to hold the new creds
-	updatedUser := &User{
-		ID:          user.ID,
-		Credentials: newCreds,
+	updatedPass := &Password{
+		UserID: pass.UserID,
+		Hash:   newCreds,
 	}
 
 	// Store new creds
-	err = h.DB.SetUserCredentials(ctx, updatedUser)
+	err = h.DB.SetPassword(ctx, updatedPass)
 	if err != nil {
 		log.WithField("component", "database").Error(err)
 	}

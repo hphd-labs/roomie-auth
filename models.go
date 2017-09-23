@@ -12,7 +12,12 @@ type PasswordAuthReply struct {
 
 // User is the database model for an auth user
 type User struct {
-	ID          string `json:"id"`
-	Username    string `json:"username"`
-	Credentials []byte `json:"-"` // never allow this to be rendered to JSON
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Password *Password
+}
+
+type Password struct {
+	UserID string `sql:",pk"`
+	Hash   []byte
 }
