@@ -10,11 +10,18 @@ var (
 	ErrUserNotFound = errors.New("User not found")
 )
 
-type AuthDatabase struct {
+// AuthDatabase is an interface describing all the functionality an auth
+// database backed must implement. This is an interface to allow mock testing
+type AuthDatabase interface {
+	SetPassword(context.Context, *Password) error
+	GetUserByName(context.Context, *User) error
+}
+
+type PGAuthDatabase struct {
 	Database *pg.DB
 }
 
-func (db *AuthDatabase) SetPassword(ctx context.Context, pass *Password) error {
+func (db *PGAuthDatabase) SetPassword(ctx context.Context, pass *Password) error {
 	_, err := db.Database.
 		WithContext(ctx).
 		Model(pass).
@@ -24,7 +31,7 @@ func (db *AuthDatabase) SetPassword(ctx context.Context, pass *Password) error {
 	return err
 }
 
-func (db *AuthDatabase) GetUserByName(ctx context.Context, user *User) error {
+func (db *PGAuthDatabase) GetUserByName(ctx context.Context, user *User) error {
 	err := db.Database.
 		WithContext(ctx).
 		Model(user).

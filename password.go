@@ -11,7 +11,7 @@ import (
 // PasswordAuthHandler deals with password based authentication
 // attempts
 type PasswordAuthHandler struct {
-	DB           *AuthDatabase
+	DB           AuthDatabase
 	PasswordCost int
 }
 
