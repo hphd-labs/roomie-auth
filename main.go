@@ -14,10 +14,6 @@ const (
 	ROUTE_PASSWORD = "/password"
 )
 
-const (
-	CONF_PORT = "PORT"
-)
-
 func main() {
 
 	debug := flag.Bool("debug", false, "Include verbose debug messages")
