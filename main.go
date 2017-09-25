@@ -5,8 +5,8 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/andrewburian/powermux"
 	"github.com/go-pg/pg"
+	"github.com/kelseyhightower/envconfig"
 	"net/http"
-	"os"
 )
 
 const (
@@ -24,19 +24,28 @@ func main() {
 	quiet := flag.Bool("quiet", false, "Suppress all but error messages")
 	flag.Parse()
 
+	// Parse environment variables
+	var conf Config
+	if err := envconfig.Process("", &conf); err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
 	// Database connection
+	dbOpts, err := pg.ParseURL(conf.DatabaseUrl)
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
 	authDB := &PGAuthDatabase{
-		Database: pg.Connect(&pg.Options{
-			Addr:     "localhost:5432", //TODO environment variables
-			User:     "postgres",
-			Database: "postgres",
-			Password: "root",
-		}),
+		Database: pg.Connect(dbOpts),
 	}
 
 	// Create the password auth handler
 	passwordHandler := PasswordAuthHandler{
-		DB: authDB,
+		DB:           authDB,
+		PasswordCost: conf.PasswordCost,
 	}
 
 	// Create the router
@@ -65,13 +74,8 @@ func main() {
 	authRoute := mux.Route(ROUTE_AUTH)
 	passwordHandler.Setup(authRoute.Route(ROUTE_PASSWORD))
 
-	// get the port
-	var port string
-	if port = os.Getenv(CONF_PORT); port == "" {
-		port = "http"
-	}
-
 	// start the http server
-	logrus.WithField("port", port).Info("Server starting")
-	http.ListenAndServe(":"+port, mux)
+	logrus.WithField("port", conf.Port).Info("Server starting")
+	err = http.ListenAndServe(":"+conf.Port, mux)
+	logrus.Fatal(err)
 }
