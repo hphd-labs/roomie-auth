@@ -1,0 +1,79 @@
+{
+	"ImportPath": "github.com/hphd-labs/roomie-auth",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v1.0.0-1-g85b1699",
+			"Rev": "85b1699d505667d13f8ac4478c1debbf85d6c5de"
+		},
+		{
+			"ImportPath": "github.com/andrewburian/mediatype",
+			"Rev": "03a15e4bff33ddbc5d60659dc5f833255269b540"
+		},
+		{
+			"ImportPath": "github.com/andrewburian/powermux",
+			"Rev": "877e8870a009b1123f78362449d6d71180064de1"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/parser",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/pool",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/orm",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/types",
+			"Comment": "v6.5.1-1-g6dcb6ae",
+			"Rev": "6dcb6ae9a382f79e069530229f8b1e73599595c5"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/inflection",
+			"Rev": "1c35d901db3da928c72a72d8458480cc9ade058f"
+		},
+		{
+			"ImportPath": "github.com/kelseyhightower/envconfig",
+			"Comment": "v1.3.0-8-g462fda1",
+			"Rev": "462fda1f11d8cad3660e52737b8beefd27acfb3f"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-5-gc605e28",
+			"Rev": "c605e284fe17294bda444b34710735b29d1a9d90"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "8f297cd68bfa04239297e192d8ebff8928eab7a3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "8f297cd68bfa04239297e192d8ebff8928eab7a3"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "99f16d856c9836c42d24e7ab64ea72916925fa97"
+		}
+	]
+}
