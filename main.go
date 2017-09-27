@@ -90,7 +90,8 @@ func main() {
 	go func(c <-chan os.Signal) {
 		select {
 		case sig := <-c:
-			shutdownCtx, cancelFunc := context.WithTimeout(context.Background(), time.Minute)
+			shutdownTime := time.Duration(conf.ShutdownTime) * time.Second
+			shutdownCtx, cancelFunc := context.WithTimeout(context.Background(), shutdownTime)
 			logrus.WithField("signal", sig).Warn("Trapped signal")
 			server.Shutdown(shutdownCtx)
 			cancelFunc()
