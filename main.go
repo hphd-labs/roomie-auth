@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/Sirupsen/logrus"
 	"github.com/andrewburian/powermux"
 	"github.com/go-pg/pg"
 	"github.com/kelseyhightower/envconfig"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 const (
@@ -72,6 +77,26 @@ func main() {
 
 	// start the http server
 	logrus.WithField("port", conf.Port).Info("Server starting")
-	err = http.ListenAndServe(":"+conf.Port, mux)
+	server := &http.Server{
+		Addr:    ":" + conf.Port,
+		Handler: mux,
+	}
+
+	// Trap TERM and INT signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+
+	// Signals kill the server
+	go func(c <-chan os.Signal) {
+		select {
+		case _ = <-c:
+			shutdownCtx, cancelFunc := context.WithTimeout(context.Background(), time.Minute)
+			server.Shutdown(shutdownCtx)
+			cancelFunc()
+		}
+	}(sigChan)
+
+	// Run the server
+	err = server.ListenAndServe()
 	logrus.Fatal(err)
 }
