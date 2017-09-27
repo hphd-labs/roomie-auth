@@ -89,8 +89,9 @@ func main() {
 	// Signals kill the server
 	go func(c <-chan os.Signal) {
 		select {
-		case _ = <-c:
+		case sig := <-c:
 			shutdownCtx, cancelFunc := context.WithTimeout(context.Background(), time.Minute)
+			logrus.WithField("signal", sig).Warn("Trapped signal")
 			server.Shutdown(shutdownCtx)
 			cancelFunc()
 		}
