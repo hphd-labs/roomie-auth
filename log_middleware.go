@@ -27,6 +27,7 @@ func (m *LoggerMiddleware) ServeHTTPMiddleware(w http.ResponseWriter, r *http.Re
 		"host":   r.Host,
 	})
 	ctx = context.WithValue(ctx, LOG_KEY, e)
+	e.Debug("Recieved request")
 	n(w, r.WithContext(ctx))
 }
 
