@@ -75,7 +75,7 @@ func main() {
 	authRoute := mux.Route(ROUTE_AUTH)
 	passwordHandler.Setup(authRoute.Route(ROUTE_PASSWORD))
 
-	// start the http server
+	// setup the http server
 	logrus.WithField("port", conf.Port).Info("Server starting")
 	server := &http.Server{
 		Addr:    ":" + conf.Port,
@@ -99,5 +99,13 @@ func main() {
 
 	// Run the server
 	err = server.ListenAndServe()
+
+	// clean exit on server close
+	if err == http.ErrServerClosed {
+		logrus.Info("Server shut down")
+		return
+	}
+
+	// Error otherwise
 	logrus.Fatal(err)
 }
