@@ -56,6 +56,16 @@ func main() {
 
 	// Setup middleware
 
+	// We allow all methods through CORS, the router will respond to
+	// verbs that aren't implemented
+	corsMid := &CorsHandler{
+		AllowedOrigins: []string{conf.WebappOrigin},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+	}
+
+	mux.Route(ROUTE_AUTH).Middleware(corsMid).Options(corsMid)
+
 	// debug supersedes quiet
 	if *quiet {
 		logrus.SetLevel(logrus.ErrorLevel)
